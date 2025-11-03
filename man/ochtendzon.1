@@ -1,0 +1,37 @@
+.\" Manpage for ochtendzon
+.TH OCHTENDZON 1 "29 Oct 2025" "0.1.0"
+
+.SH NAME
+ochtendzon \- Simple compiler toolchain for the Tau language.
+
+.SH SYNOPSIS
+.B ochtendzon
+[\fIOPTION\fR]... [\fIFILE\fR]...
+
+.SH DESCRIPTION
+The \fBochtendzon\fR command takes any number of files of folders and first, searches them for any Tau files and then compiles them to the default target (e.g. C++). It will then use \fBgcc\fR and \fBg++\fR to compile all generated C++ files and external C files. Finally, if the \fI-c\fR was not given, it will link all object files to a binary. The name of the binary file is the filename supplied with the \fI-o\fR given, otherwise it will use the default name tau.out.
+
+.SH OPTIONS
+.TP
+.B -c
+Compile and assemble, but do not link.
+
+.TP
+.B -o\fI=file\fR
+Place the output into <file>.
+
+.TP
+.B -h,--help
+Prints this help message.
+
+.SH EXAMPLES
+ochtendzon example/ -o output.bin
+
+.SH REPORTING BUGS
+You can report a bugs on GitHub <https://github.com/tau-lang/ochtendzon/issues>
+
+.SH SEE ALSO
+tauc(1), gcc(1)
+
+.SH COPYRIGHT
+Licensed under the EUPL
