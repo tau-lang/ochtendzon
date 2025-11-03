@@ -1,0 +1,4 @@
+### Generated gcc files
+*.cpp
+*.hpp
+*.o
