@@ -1,0 +1,90 @@
+#!/usr/bin/env bash
+
+print_help() {
+  cat <<EOF
+Usage: ochtendzon [options] file...
+Options:
+  -c          Compile and assemble, but do not link.
+  -o <file>   Place the output into <file>.
+  -h,--help   Prints this help message.
+EOF
+}
+
+# Default values
+linking=true
+output="tau.out"
+paths=()
+
+# Parse command line arguments
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -c)
+      linking=false
+      shift
+      ;;
+    -o)
+      output="$2"
+      shift 2
+      ;;
+    --help|-h)
+      print_help
+      exit 0
+      ;;
+    *)
+      paths+=("$1")
+      shift
+      ;;
+  esac
+done
+
+if [[ ${#paths[@]} -eq 0 ]]; then
+  echo No input files
+  print_help
+  exit 1
+fi
+
+object_files=()
+
+compile_file() {
+  local file="$1"
+  local filename="${file%.*}"
+
+  # Compile the Tau file to C++
+  tau "${file}"
+
+  # Then use gcc to compile the generated files again
+  g++ -c "${filename}.cpp" -o "${filename}.o"
+  object_files+=("${filename}.o")
+  if [ -f "${filename}.c" ]; then
+    gcc -c "${filename}.c" -o "${filename}\$extern.o"
+    object_files+=("${filename}\$extern.o")
+  fi
+}
+
+compile_path() {
+  local path="$1"
+
+  if [[ -f "$path" ]]; then
+    local extension="${path##*.}"
+    if [[ "$extension" == "tau" ]]; then
+      compile_file "$path"
+    fi
+  elif [[ -d $path ]]; then
+    for sub in "$path"/*; do
+      [[ -e "$sub" ]] || continue
+      compile_path "$sub"
+    done
+  else
+    echo "Could not found file '${path}'"
+  fi
+}
+
+for path in "${paths[@]}"; do
+  compile_path "$path"
+done
+
+if $linking; then
+  if [[ ${#object_files[@]} -gt 0 ]]; then
+    g++ "${object_files[@]}" -o "${output}"
+  fi
+fi
