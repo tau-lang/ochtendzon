@@ -1,0 +1,23 @@
+name: Nix
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6.0.1
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v31.9.0
+
+      - name: Check Flake
+        run: nix flake check
+
+      - name: Build Flake
+        run: nix build
