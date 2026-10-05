@@ -16,14 +16,14 @@ target/
 """
 
 def init(args) -> int:
-  if os.path.isfile(CONFIG_NAME):
+  if os.path.isfile(CONFIG_NAME) and args.force is None :
     print("Config already exists, cancelling")
     return 1
 
   folder = os.path.basename(os.path.abspath('.'))
   print(f"Creating new project inside {folder}")
 
-  name = args.name if args.name != None else folder
+  name = args.name if args.name is not None else folder
   generated = {
     'project': {
       'name': name,

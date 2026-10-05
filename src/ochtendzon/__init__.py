@@ -15,6 +15,7 @@ def main():
 
   parser_init = subparsers.add_parser('init', help='Create a new ochtendzon package')
   parser_init.add_argument('--name', type=str)
+  parser_init.add_argument('-f', '--force', action='store_true')
 
   parser_run = subparsers.add_parser('run', help='Run a binary of the local package')
 
