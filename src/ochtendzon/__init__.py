@@ -29,6 +29,9 @@ def main():
 
   parser_update = subparsers.add_parser('update', help='Updates all dependencies')
 
+  parser_remove = subparsers.add_parser('remove', help='Remove the package from the dependencies')
+  parser_remove.add_argument('name', nargs='?', type=str)
+
   args = parser.parse_args()
 
   logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
@@ -51,9 +54,13 @@ def main():
       return run(args)
 
     case 'add':
-      from ochtendzon.add import add
+      from ochtendzon.deps import add
       return add(args)
 
     case 'update':
-      from ochtendzon.update import update
+      from ochtendzon.deps import update
       return update(args)
+
+    case 'remove':
+      from ochtendzon.deps import remove
+      return remove(args)
