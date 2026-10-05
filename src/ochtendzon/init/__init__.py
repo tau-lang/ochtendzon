@@ -1,6 +1,9 @@
 import os
+import logging
 from ochtendzon.config import CONFIG_NAME, save_config
 
+
+logger = logging.getLogger(__name__)
 
 DEFAULT_MAIN = """
 extern fn puts(text: str)
@@ -17,11 +20,11 @@ target/
 
 def init(args) -> int:
   if os.path.isfile(CONFIG_NAME) and args.force is None :
-    print("Config already exists, cancelling")
+    logger.error("Config already exists, cancelling")
     return 1
 
   folder = os.path.basename(os.path.abspath('.'))
-  print(f"Creating new project inside {folder}")
+  logger.info(f"Creating new project inside {folder}")
 
   name = args.name if args.name is not None else folder
   generated = {

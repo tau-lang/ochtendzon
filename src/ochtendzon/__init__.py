@@ -1,3 +1,5 @@
+import logging
+
 def main():
   import os
   import argparse
@@ -6,6 +8,7 @@ def main():
     prog='ochtendzon',
     description='Simple compiler toolchain for the Tau language. ',
     fromfile_prefix_chars='@',
+    suggest_on_error=True,
   )
 
   subparsers = parser.add_subparsers(title='commands', required=True, dest='command')
@@ -19,7 +22,16 @@ def main():
 
   parser_run = subparsers.add_parser('run', help='Run a binary of the local package')
 
+  parser_add = subparsers.add_parser('add', help='Add the package to the dependencies')
+  parser_add.add_argument('name', nargs='?', type=str)
+  parser_add.add_argument('version', nargs='?', type=str)
+  parser_add.add_argument('src', nargs='?', type=str)
+
+  parser_update = subparsers.add_parser('update', help='Updates all dependencies')
+
   args = parser.parse_args()
+
+  logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
 
   match args.command:
     case 'build':
@@ -37,3 +49,11 @@ def main():
 
       from ochtendzon.run import run
       return run(args)
+
+    case 'add':
+      from ochtendzon.add import add
+      return add(args)
+
+    case 'update':
+      from ochtendzon.update import update
+      return update(args)
