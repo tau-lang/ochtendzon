@@ -1,13 +1,19 @@
 import os
 import toml
+import logging
 
 
 CONFIG_NAME = 'ochtendzon.toml'
 
+logger = logging.getLogger(__name__)
+
 
 def load_config():
-  with open(CONFIG_NAME, 'r') as f:
+  try:
+    with open(CONFIG_NAME, 'r') as f:
       return toml.load(f)
+  except FileNotFoundError:
+    logger.error(f"Could not find {CONFIG_NAME} inside {os.getcwd()}")
 
 
 def save_config(config):
