@@ -10,26 +10,29 @@
       let
         pkgs = import nixpkgs { inherit system; };
         lib = nixpkgs.lib;
-        bi = [ tau.packages."${system}".default pkgs.gcc ];
+        bi = [
+          tau.packages."${system}".default
+          pkgs.gcc
+          pkgs.python313
+        ];
       in {
         packages = rec {
           default = ochtendzon;
 
-          ochtendzon = pkgs.stdenv.mkDerivation {
+          ochtendzon = pkgs.python313.pkgs.buildPythonPackage {
             pname = "ochtendzon";
             version = "0.1.0";
 
-            src = ./.;
+            src = ./.; 
+            format = "pyproject";
+            
+            nativeBuildInputs = [
+              pkgs.python313Packages.uv-build
+            ];
 
-            nativeBuildInputs = [ pkgs.makeWrapper ];
+            buildInputs = bi;
 
-            installPhase = ''
-              mkdir -p $out/bin
-              cp ochtendzon $out/bin/
-
-              wrapProgram $out/bin/ochtendzon \
-              --prefix PATH : ${pkgs.lib.makeBinPath bi}
-            '';
+            propagatedBuildInputs = [ pkgs.python313Packages.toml ];
 
             meta = {
               homepage = "https://github.com/tau-lang/ochtendzon";
@@ -57,6 +60,18 @@
           };
         };
         devShells.default =
-          pkgs.mkShell { buildInputs = bi ++ [ pkgs.nixfmt ]; };
+          pkgs.mkShell { 
+            buildInputs = bi ++ [ pkgs.nixfmt pkgs.uv ];
+
+            env = {
+              UV_NO_SYNC = "1";
+              UV_PYTHON = "${pkgs.python313}/bin/python";
+              UV_PYTHON_DOWNLOADS = "never";
+            };
+
+            shellHook = ''
+              unset PYTHONPATH
+            '';  
+          };
       });
 }

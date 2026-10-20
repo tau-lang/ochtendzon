@@ -1,0 +1,28 @@
+[build-system]
+requires = ["uv_build"]
+build-backend = "uv_build"
+
+[tool.uv]
+python-downloads = "manual"
+
+[project.scripts]
+ochtendzon = "ochtendzon:main"
+
+[project]
+name = "ochtendzon"
+version = "0.1.0"
+dependencies = [
+    "toml>=0.10.2",
+]
+requires-python = ">=3.13"
+authors = []
+maintainers = []
+description = "Lovely Spam! Wonderful Spam!"
+readme = "README.md"
+license-files = ["LICENSE"]
+
+[project.urls]
+Homepage = "https://codeberg.org/tau-lang/ochtendzon"
+Documentation = "https://codeberg.org/tau-lang/ochtendzon/src/branch/main/man"
+Repository = "https://codeberg.org/tau-lang/ochtendzon.git"
+"Bug Tracker" = "https://codeberg.org/tau-lang/ochtendzon/issues"

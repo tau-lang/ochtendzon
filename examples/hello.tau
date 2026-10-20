@@ -1,5 +1,0 @@
-extern fn println(text: str)
-
-fn main() {
-    println("Hello, World!")
-}
