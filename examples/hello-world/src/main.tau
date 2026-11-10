@@ -1,4 +1,4 @@
-extern fn puts(text: str) -> i8
+extern fn puts(text: str) -> i8;
 
 fn main() {
     puts("Hello, World!")

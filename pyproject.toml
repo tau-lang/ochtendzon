@@ -26,3 +26,8 @@ Homepage = "https://codeberg.org/tau-lang/ochtendzon"
 Documentation = "https://codeberg.org/tau-lang/ochtendzon/src/branch/main/man"
 Repository = "https://codeberg.org/tau-lang/ochtendzon.git"
 "Bug Tracker" = "https://codeberg.org/tau-lang/ochtendzon/issues"
+
+[dependency-groups]
+dev = [
+    "black>=26.10.1",
+]
