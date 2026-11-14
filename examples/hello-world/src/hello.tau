@@ -1,5 +1,0 @@
-extern fn puts(text: str)
-
-fn main() {
-    puts("Hello, World!")
-}
