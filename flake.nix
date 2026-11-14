@@ -13,6 +13,7 @@
         bi = [
           tau.packages."${system}".default
           pkgs.gcc
+          pkgs.qbe
           pkgs.python313
         ];
       in {
@@ -61,7 +62,7 @@
         };
         devShells.default =
           pkgs.mkShell { 
-            buildInputs = bi ++ [ pkgs.nixfmt pkgs.uv ];
+            buildInputs = bi ++ [ pkgs.nixfmt pkgs.uv pkgs.black ];
 
             env = {
               UV_NO_SYNC = "1";

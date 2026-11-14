@@ -1,14 +1,28 @@
 from dataclasses import dataclass
-from typing import Callable, Awaitable
+from typing import Callable, Awaitable, Iterable
 from collections import defaultdict
 from ochtendzon.error import OchtendzonError
+from pathlib import PurePath, Path
 import asyncio
 import logging
 
-# Problem:
-# - each statement hast a list of required input files and produces a list of output files
-# - each statement contains a rule that when run starts a process that takes the input files and produces the declared input files
-# - find an acyclic direct graph and run all steps and orders. Run as many steps as possible async.
+"""
+When developing the very first shell script for automating tau compilation, we
+encountered the problem that only one command at a time was executed. File
+compilations that didn't depended on each other were still blocking. To solve
+this issue, we introduce the build graph together with build statements. This
+is inspired by the ninja build tool (https://ninja-build.org/).
+
+Formal definition of the problem for the build graph:
+- Each statement hast a list of required input files and produces a list of
+  output files.
+- Each statement contains a rule that when run starts a process that takes
+  the input files and produces the declared output files.
+- Find an acyclic direct graph and order all statements based on its
+  dependencies. Run statements from the bottom of the tree to the top
+  asynchronous. A parent can only be started when all dependencies have
+  successfully finished.
+"""
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +35,7 @@ class Statement:
     run: Callable[[], Awaitable[None]]
 
 
-def build_graph(statements):
+def build_graph(statements: Iterable[Statement]):
     producers = {}
 
     for i, statement in enumerate(statements):
@@ -50,7 +64,7 @@ def build_graph(statements):
     return graph, indegree
 
 
-async def execute(statements):
+async def execute(statements: Iterable[Statement]):
     graph, indegree = build_graph(statements)
 
     count = len(statements)
@@ -104,7 +118,7 @@ async def execute(statements):
         raise ValueError(f"Dependency cycle detected or unresolved tasks: {remaining}")
 
 
-async def exec_subprocess(cmd):
+async def exec_subprocess(cmd: Iterable[str]):
     proc = None
     try:
         proc = await asyncio.create_subprocess_exec(
@@ -132,21 +146,24 @@ async def exec_subprocess(cmd):
         )
 
 
-def output(path: Path, ext: str) -> str:
-    return f"{path.parent}/{path.stem}.{ext}"
+def output(folder: PurePath, file: PurePath, ext: str) -> PurePath:
+    return folder.joinpath(*file.parts[1:-1]) / f"{file.stem}.{ext}"
 
 
 def compile_tau_qbe(
-    tau_compiler: str, qbe_compiler: str, input: Path
+    tau_compiler: str, qbe_compiler: str, input: PurePath
 ) -> list[Statement]:
-    temp = output(input, "ssa")
-    result = output(input, "s")
+    temp = output(PurePath("target"), input, "ssa")
+    Path(temp.parent).mkdir(parents=True, exist_ok=True)
+    result = output(PurePath("target"), input, "s")
     return [
         Statement(
             f"Compile {input} with {tau_compiler} to Qbe",
             [input],
             [temp],
-            lambda: exec_subprocess([tau_compiler, input, "--codegen", "qbe"]),
+            lambda: exec_subprocess(
+                [tau_compiler, input, "-o", temp, "--codegen", "qbe"]
+            ),
         ),
         Statement(
             f"Compile {temp} with {qbe_compiler} to Assembly",
@@ -157,15 +174,18 @@ def compile_tau_qbe(
     ]
 
 
-def compile_tau_c(tau_compiler, c_compiler, input):
-    temp = output(input, "c")
-    result = output(input, "o")
+def compile_tau_c(tau_compiler: str, c_compiler: str, input: PurePath):
+    temp = output(PurePath("target"), input, "c")
+    Path(temp.parent).mkdir(parents=True, exist_ok=True)
+    result = output(PurePath("target"), input, "o")
     return [
         Statement(
-            f"Compile {input} wit {tau_compiler} to C",
+            f"Compile {input} with {tau_compiler} to C",
             [input],
             [temp, output(input, "h")],
-            lambda: exec_subprocess([tau_compiler, input, "--codegen", "c"]),
+            lambda: exec_subprocess(
+                [tau_compiler, input, "-o", temp, "--codegen", "c"]
+            ),
         ),
         Statement(
             f"Compile {temp} with {c_compiler} to ObjectFile",
@@ -176,9 +196,9 @@ def compile_tau_c(tau_compiler, c_compiler, input):
     ]
 
 
-def link(linker, inputs, output):
+def link(linker: str, inputs: Iterable[PurePath], output: PurePath):
     return Statement(
-        f"Linking {inputs} -> {output}",
+        f"Linking {', '.join(map(str, inputs))} -> {output}",
         inputs,
         [output],
         lambda: exec_subprocess([linker, "-o", output, *inputs]),

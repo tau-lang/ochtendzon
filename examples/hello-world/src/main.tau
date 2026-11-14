@@ -1,5 +1,5 @@
-extern fn puts(text: str) -> i8;
+extern fn puts(text: str) -> i32;
 
 fn main() {
-    puts("Hello, World!")
+    puts("Hello, World!");
 }

@@ -1,19 +1,19 @@
 import subprocess
 import sys
 import ochtendzon.error
-from os.path import isfile, isdir
-from ochtendzon.config import CONFIG_NAME, load_config
+from os.path import isdir
+from pathlib import Path
+from ochtendzon.config import config
 
 
-def run(args):
-    config = load_config()
+def run(path):
+    with config(path) as handle:
+        if not isdir("target"):
+            raise error.OchtendzonError("Target folder not found.")
 
-    if not isdir("target"):
-        raise error.OchtendzonError("Target folder not found.")
-
-    binary = config["project"]["name"]
-    try:
-        result = subprocess.run([f"target/{binary}"])
-        return result.returncode
-    except FileNotFoundError:
-        raise error.OchtendzonError("Binary not found.")
+        binary = handle.get(["project", "name"])
+        try:
+            result = subprocess.run([f"target/{binary}"])
+            return result.returncode
+        except FileNotFoundError:
+            raise error.OchtendzonError("Binary not found.")
